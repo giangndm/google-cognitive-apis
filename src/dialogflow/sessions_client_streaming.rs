@@ -58,7 +58,7 @@ impl SessionsClient {
         )
         .await?;
 
-        let token_header_val = get_token(google_credentials)?;
+        let token_header_val = get_token(google_credentials).await?;
 
         let sessions_client =
             GrpcSessionsClient::with_interceptor(channel, new_interceptor(token_header_val));

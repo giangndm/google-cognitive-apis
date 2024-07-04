@@ -80,7 +80,7 @@ impl Recognizer {
     ) -> Result<Self> {
         let channel = new_grpc_channel(GRPC_API_DOMAIN, GRPC_API_URL, None).await?;
 
-        let token_header_val = get_token(google_credentials)?;
+        let token_header_val = get_token(google_credentials).await?;
 
         let speech_client =
             SpeechClient::with_interceptor(channel, new_interceptor(token_header_val));
@@ -111,7 +111,7 @@ impl Recognizer {
     ) -> Result<Self> {
         let channel = new_grpc_channel(GRPC_API_DOMAIN, GRPC_API_URL, None).await?;
 
-        let token_header_val = get_token(google_credentials)?;
+        let token_header_val = get_token(google_credentials).await?;
 
         let speech_client = SpeechClient::with_interceptor(
             channel.clone(),
@@ -138,7 +138,7 @@ impl Recognizer {
     ) -> Result<Self> {
         let channel = new_grpc_channel(GRPC_API_DOMAIN, GRPC_API_URL, None).await?;
 
-        let token_header_val = get_token(google_credentials)?;
+        let token_header_val = get_token(google_credentials).await?;
 
         let speech_client =
             SpeechClient::with_interceptor(channel, new_interceptor(token_header_val));

@@ -78,8 +78,8 @@ pub(crate) async fn new_grpc_channel(
 /// Returns google token (String value) from
 /// Google Cloud Platform project JSON credentials (provided as String).
 #[allow(clippy::rc_buffer)]
-pub(crate) fn get_token(google_credentials: impl AsRef<str>) -> Result<Arc<String>> {
+pub(crate) async fn get_token(google_credentials: impl AsRef<str>) -> Result<Arc<String>> {
     let token = Builder::new().json(google_credentials).build()?;
-    let token_header_val: Arc<String> = token.header_value()?;
+    let token_header_val: Arc<String> = token.header_value().await?;
     Ok(token_header_val)
 }
