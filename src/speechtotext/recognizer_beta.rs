@@ -32,6 +32,7 @@ use log::*;
 use prost::Message;
 use std::io::Cursor;
 use std::result::Result as StdResult;
+use std::sync::Arc;
 use std::time::Duration;
 use tokio::sync::mpsc;
 use tokio::time::sleep;
@@ -78,9 +79,43 @@ impl Recognizer {
         // If not provided defaults to 1000.
         buffer_size: Option<usize>,
     ) -> Result<Self> {
-        let channel = new_grpc_channel(GRPC_API_DOMAIN, GRPC_API_URL, None).await?;
-
         let token_header_val = get_token(google_credentials)?;
+        Self::create_streaming_recognizer_with_token(token_header_val, config, buffer_size).await
+    }
+
+    /// Creates new speech recognizer from provided
+    /// Google credentials. This kind of recognizer can be used
+    /// for long running recognition.
+    pub async fn create_asynchronous_recognizer(
+        google_credentials: impl AsRef<str>,
+    ) -> Result<Self> {
+        let token_header_val = get_token(google_credentials)?;
+        Self::create_asynchronous_recognizer_with_token(token_header_val).await
+    }
+
+    /// Creates new speech recognizer from provided
+    /// Google credentials. This kind of recognizer can be used
+    /// for synchronous recognition.
+    pub async fn create_synchronous_recognizer(
+        google_credentials: impl AsRef<str>,
+    ) -> Result<Self> {
+        let token_header_val = get_token(google_credentials)?;
+        Self::create_synchronous_recognizer_with_token(token_header_val).await
+    }
+
+    /// Creates new speech recognizer from provided
+    /// Google credentials and google speech configuration.
+    /// This kind of recognizer can be used for streaming recognition.
+    pub async fn create_streaming_recognizer_with_token(
+        // Google Cloud Platform token
+        token_header_val: Arc<String>,
+        //  Streaming recognition configuration
+        config: StreamingRecognitionConfig,
+        // Capacity of audio sink (tokio channel used by caller to send audio data).
+        // If not provided defaults to 1000.
+        buffer_size: Option<usize>,
+    ) -> Result<Self> {
+        let channel = new_grpc_channel(GRPC_API_DOMAIN, GRPC_API_URL, None).await?;
 
         let speech_client =
             SpeechClient::with_interceptor(channel, new_interceptor(token_header_val));
@@ -106,12 +141,10 @@ impl Recognizer {
     /// Creates new speech recognizer from provided
     /// Google credentials. This kind of recognizer can be used
     /// for long running recognition.
-    pub async fn create_asynchronous_recognizer(
-        google_credentials: impl AsRef<str>,
+    pub async fn create_asynchronous_recognizer_with_token(
+        token_header_val: Arc<String>,
     ) -> Result<Self> {
         let channel = new_grpc_channel(GRPC_API_DOMAIN, GRPC_API_URL, None).await?;
-
-        let token_header_val = get_token(google_credentials)?;
 
         let speech_client = SpeechClient::with_interceptor(
             channel.clone(),
@@ -133,12 +166,10 @@ impl Recognizer {
     /// Creates new speech recognizer from provided
     /// Google credentials. This kind of recognizer can be used
     /// for synchronous recognition.
-    pub async fn create_synchronous_recognizer(
-        google_credentials: impl AsRef<str>,
+    pub async fn create_synchronous_recognizer_with_token(
+        token_header_val: Arc<String>,
     ) -> Result<Self> {
         let channel = new_grpc_channel(GRPC_API_DOMAIN, GRPC_API_URL, None).await?;
-
-        let token_header_val = get_token(google_credentials)?;
 
         let speech_client =
             SpeechClient::with_interceptor(channel, new_interceptor(token_header_val));
